@@ -37,7 +37,7 @@ public class S3ClientTest extends S3WireMockBase {
     //#client
     final AWSCredentials credentials = new BasicCredentials("my-AWS-access-key-ID", "my-AWS-password");
     final Proxy proxy = new Proxy("localhost",port(),"http");
-    final S3Settings settings = new S3Settings(MemoryBufferType.getInstance(),"", Some.apply(proxy),credentials,"us-east-1",false);
+    final S3Settings settings = new S3Settings(MemoryBufferType.getInstance(),"", Some.apply(proxy),credentials,"us-east-1",false,2);
     final S3Client client = new S3Client(settings, system(), materializer);
     //#client
 
@@ -94,9 +94,31 @@ public class S3ClientTest extends S3WireMockBase {
     }
 
     @Test
-    public void listBucket() throws Exception {
+    public void listBucketV2() throws Exception {
 
         mockListBucket();
+
+        //#list-bucket
+        final Source<ListBucketResultContents, NotUsed> keySource = client.listBucket(bucket(), Option.apply(listPrefix()));
+        //#list-bucket
+
+        final CompletionStage<ListBucketResultContents> resultCompletionStage = keySource.runWith(Sink.head(), materializer);
+
+        ListBucketResultContents result = resultCompletionStage.toCompletableFuture().get(5, TimeUnit.SECONDS);
+
+        assertEquals(result.key(), listKey());
+
+    }
+
+    @Test
+    public void listBucketV1() throws Exception {
+
+        mockListBucket();
+
+        AWSCredentials credentials = new BasicCredentials("my-AWS-access-key-ID", "my-AWS-password");
+        Proxy proxy = new Proxy("localhost",port(),"http");
+        S3Settings settings = new S3Settings(MemoryBufferType.getInstance(),"", Some.apply(proxy),credentials,"us-east-1",false,1);
+        S3Client client = new S3Client(settings, system(), materializer);
 
         //#list-bucket
         final Source<ListBucketResultContents, NotUsed> keySource = client.listBucket(bucket(), Option.apply(listPrefix()));

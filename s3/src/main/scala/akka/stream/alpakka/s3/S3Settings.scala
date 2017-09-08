@@ -14,10 +14,11 @@ final case class S3Settings(bufferType: BufferType,
                             proxy: Option[Proxy],
                             awsCredentials: AWSCredentials,
                             s3Region: String,
-                            pathStyleAccess: Boolean) {
+                            pathStyleAccess: Boolean,
+                            listBucketVersion: Int = 2) {
 
   override def toString: String =
-    s"S3Settings($bufferType,$diskBufferPath,$proxy,$awsCredentials,$s3Region,$pathStyleAccess)"
+    s"S3Settings($bufferType,$diskBufferPath,$proxy,$awsCredentials,$s3Region,$pathStyleAccess,$listBucketVersion)"
 }
 
 sealed trait BufferType
@@ -60,7 +61,8 @@ object S3Settings {
     awsCredentials = AWSCredentials(config.getString("akka.stream.alpakka.s3.aws.access-key-id"),
                                     config.getString("akka.stream.alpakka.s3.aws.secret-access-key")),
     s3Region = config.getString("akka.stream.alpakka.s3.aws.default-region"),
-    pathStyleAccess = config.getBoolean("akka.stream.alpakka.s3.path-style-access")
+    pathStyleAccess = config.getBoolean("akka.stream.alpakka.s3.path-style-access"),
+    listBucketVersion = config.getInt("akka.stream.alpakka.s3.list-bucket-version")
   )
 
   /**
